@@ -42,27 +42,47 @@ class TODOAPI(object):
 
     def PUT(self, tasktext):
         if self.cursor:
-            query = "INSERT INTO TASKS (text) VALUES (%s);"
-            self.cursor.execute(query, (tasktext, ))
-            self.con.commit()
+            try:
+                query = "INSERT INTO TASKS (text) VALUES (%s) RETURNING " + \
+                    "ID, TEXT, STATUS"
+                self.cursor.execute(query, (tasktext, ))
+            except psycopg2.Error as e:
+                self.con.rollback()
+                raise cherrypy.HTTPError(500, e.pgerror)
+            else:
+                self.con.commit()
+                return json.dumps(self.cursor.fetchone())
+
+
 
     def DELETE(self):
         rawdata = cherrypy.request.body.readline()
         utf_str = rawdata.decode('utf-8')
         id = utf_str.split('=')[1]
         if self.cursor:
-            query = "DELETE FROM TASKS WHERE ID=%s;"
-            self.cursor.execute(query, (id, ))
-            self.con.commit()
+            try:
+                query = "DELETE FROM TASKS WHERE ID=%s;"
+                self.cursor.execute(query, (id, ))
+                self.con.commit()
+            except psycopg2.Error as e:
+                self.con.rollback()
+                raise cherrypy.HTTPError(500, e.pgerror)
+            else:
+                self.con.commit()
 
     def UPDATE(self):
         rawdata = cherrypy.request.body.readline()
         data = rawdata2dict(rawdata)
         if self.cursor:
-            query = "UPDATE TASKS SET STATUS=%s WHERE ID=%s;"
-            self.cursor.execute(query, (data['status'], data['task_id']))
-            self.con.commit()
-
+            try:
+                query = "UPDATE TASKS SET STATUS=%s WHERE ID=%s;"
+                self.cursor.execute(query, (data['status'], data['task_id']))
+                self.con.commit()
+            except psycopg2.Error as e:
+                self.con.rollback()
+                raise cherrypy.HTTPError(500, e.pgerror)
+            else:
+                self.con.commit()
 
 
 

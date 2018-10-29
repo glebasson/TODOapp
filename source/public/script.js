@@ -36,7 +36,7 @@ function addtask(template, data) {
     $(row).find(".form-check-input").change(updatetask);
 }
 
-
+var k;
 // PUT method overriding
 function puttask(template) {
     $("#inputform").submit(function (e) {
@@ -47,10 +47,9 @@ function puttask(template) {
                 type: 'PUT',
                 data: "tasktext=" + val,
             }).done(function (data) {
-                addtask(template, {
-                    "text": val,
-                    "status": false
-                });
+                k = data;
+                data = JSON.parse(data);
+                addtask(template, data);
                 $("#todoinput")[0].value = "";
             });
         }
