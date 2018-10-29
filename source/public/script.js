@@ -25,6 +25,7 @@ function updatetask() {
     });
 }
 
+
 // Add new str to html
 function addtask(template, data) {
     row = $(template).appendTo("#TODO-container");
@@ -32,7 +33,29 @@ function addtask(template, data) {
     $(row).find(".col-8").text(data.text);
     $(row).find(".form-check-input").prop("checked", data.status);
     $(row).find(".delete_button").on("click", deletetask);
-    $(row).find(".form-check-input").change("click", updatetask);
+    $(row).find(".form-check-input").change(updatetask);
+}
+
+
+// PUT method overriding
+function puttask(template) {
+    $("#inputform").submit(function (e) {
+        val = $("#todoinput")[0].value;
+        if (val !== "") {
+            $.ajax({
+                url: '/api',
+                type: 'PUT',
+                data: "tasktext=" + val,
+            }).done(function (data) {
+                addtask(template, {
+                    "text": val,
+                    "status": false
+                });
+                $("#todoinput")[0].value = "";
+            });
+        }
+        return (false);
+    });
 }
 
 
@@ -40,23 +63,8 @@ function addtask(template, data) {
 $(document).ready(function () {
     // Get row template firstly
     $.get("/static/template.html", function(template){
-        //PUT method overriding
-        $("#inputform").submit(function (e) {
-            val = $("#todoinput")[0].value;
-            if (val !== "") {
-                $.ajax({
-                    url: '/api',
-                    type: 'PUT',
-                    data: "tasktext=" + val,
-                }).done(function (data) {
-                    addtask(template, {
-                        "text": val,
-                        "status": false
-                    })
-                });
-            }
-            return (false);
-        });
+        // PUT method overriding
+        puttask(template);
         // Formate page
         $.ajax({
         url: '/api',
