@@ -15,14 +15,19 @@ class TODOList(object):
 # RESTFUL API
 @cherrypy.expose
 class TODOAPI(object):
-    connect_str = "dbname='tododb' user='glebasson' host='localhost'" + \
-                  "password='1'"
-    cursor = None
-    try:
-        con = psycopg2.connect(connect_str)
-        cursor = con.cursor(cursor_factory=RealDictCursor)
-    except Exception as e:
-        print(e)
+
+    def __init__(self):
+        connect_str = "dbname='tododb' user='glebasson' host='localhost'" + \
+                      "password='1'"
+        try:
+            self.con = psycopg2.connect(connect_str)
+            self.cursor = self.con.cursor(cursor_factory=RealDictCursor)
+        except Exception as e:
+            print(e)
+
+    def __del__(self):
+        self.cursor.close()
+        self.con.close()
 
     @cherrypy.tools.accept(media='application/json')
     def GET(self):
@@ -33,7 +38,6 @@ class TODOAPI(object):
         return json.dumps(data)
 
     def POST(self, tasktext):
-        print("asfasf")
         return None
 
     def PUT(self, tasktext):
@@ -47,9 +51,20 @@ class TODOAPI(object):
                 self.con.commit()
 
     def DELETE(self):
-        print("DELETE")
+        rawdata = cherrypy.request.body.readline()
+        utf_str = rawdata.decode('utf-8')
+        id = utf_str.split('=')[1]
+        if self.cursor:
+            try:
+                query = "DELETE FROM TASKS WHERE ID=%s;"
+                self.cursor.execute(query, (id, ))
+            except psycopg2.Error as e:
+                raise cherrypy.HTTPError(500, e.pgerror)
+            else:
+                self.con.commit()
 
 
 web = TODOList()
 web.api = TODOAPI()
 cherrypy.quickstart(web, '/', "server.conf")
+
