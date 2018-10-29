@@ -1,4 +1,4 @@
-// delete task from list
+// Delete task from list
 function deletetask() {
     row = this.parentElement.parentElement;
     id = row.id.split('_')[1];
@@ -10,6 +10,21 @@ function deletetask() {
 }
 
 
+// Update task status
+function updatetask() {
+    console.log(this);
+    row = this.parentElement.parentElement;
+    id = row.id.split('_')[1];
+    $.ajax({
+        url: "api",
+        method: 'UPDATE',
+        data: {
+                task_id: id,
+                status: $(row).find(".form-check-input")[0].checked,
+              },
+    });
+}
+
 // Add new str to html
 function addtask(template, data) {
     row = $(template).appendTo("#TODO-container");
@@ -17,6 +32,7 @@ function addtask(template, data) {
     $(row).find(".col-8").text(data.text);
     $(row).find(".form-check-input").prop("checked", data.status);
     $(row).find(".delete_button").on("click", deletetask);
+    $(row).find(".form-check-input").change("click", updatetask);
 }
 
 
