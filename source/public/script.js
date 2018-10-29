@@ -12,16 +12,18 @@ function deletetask() {
 
 // Update task status
 function updatetask() {
-    console.log(this);
     row = this.parentElement.parentElement;
     id = row.id.split('_')[1];
+    status = $(row).find(".form-check-input")[0].checked;
     $.ajax({
         url: "api",
         method: 'UPDATE',
         data: {
                 task_id: id,
-                status: $(row).find(".form-check-input")[0].checked,
+                status: status,
               },
+    }).done(function () {
+        updatebackground(JSON.parse(status), $(row));
     });
 }
 
@@ -34,9 +36,10 @@ function addtask(template, data) {
     $(row).find(".form-check-input").prop("checked", data.status);
     $(row).find(".delete_button").on("click", deletetask);
     $(row).find(".form-check-input").change(updatetask);
+    updatebackground(data.status, row);
 }
 
-var k;
+
 // PUT method overriding
 function puttask(template) {
     $("#inputform").submit(function (e) {
@@ -78,6 +81,13 @@ $(document).ready(function () {
     });
 });
 
+function updatebackground(status, el) {
+    if (status) {
+        el.css("background-color", "lawngreen")
+    }else {
+        el.css("background-color", "#e9ecef")
+    }
+}
 
 
 
